@@ -1,9 +1,6 @@
-import {
-    transacaoSchema, 
-    collectionUsers, 
-    collectionSessions, 
-    collectionTransacoes } from "../index.js";
-    import dayjs from "dayjs";
+import { transacaoSchema } from "../index.js";
+import { collectionUsers, collectionSessions, collectionTransacoes } from "../database/db.js"
+import dayjs from "dayjs";
 
 export async function postTransacoes(req, res){
     const bodyTransacao = req.body
