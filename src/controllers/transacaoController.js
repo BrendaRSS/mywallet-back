@@ -1,35 +1,12 @@
-import { transacaoSchema } from "../index.js";
-import { collectionUsers, collectionSessions, collectionTransacoes } from "../database/db.js"
+import { collectionTransacoes } from "../database/db.js"
 import dayjs from "dayjs";
 
 export async function postTransacoes(req, res){
-    const bodyTransacao = req.body
-    const { authorization } = req.headers;
-
-    const token = authorization?.replace("Bearer ", "");
-
-    if (!token) {
-        return res.status(401).send("Token não enviado!");
-    }
-
-    const { error } = transacaoSchema.validate(bodyTransacao, { abortEarly: false });
-
-    if (error) {
-        const errors = error.details.map((detail) => detail.message);
-        return res.status(422).send(errors);
-    }
+    const bodyTransacao = req.bodyTransacao;
+    const user = res.locals.user;
+    console.log(user);
 
     try {
-        const session = await collectionSessions.findOne({ token });
-        if (!session) {
-            return res.sendStatus(401);
-        }
-
-        const user = await collectionUsers.findOne({ _id: session.userId });
-        if (!user) {
-            return res.sendStatus(401);
-        }
-
         const transacoesUser = await collectionTransacoes.insertOne({ ...bodyTransacao, time: dayjs().locale("pt").format("DD/MM/YYYY"), userId: user._id });
 
         return res.status(201).send({message:"Transação feita com sucesso!"});
@@ -41,22 +18,9 @@ export async function postTransacoes(req, res){
 }
 
 export async function getTransacoes(req, res) {
-    const { authorization } = req.headers;
-
-    const token = authorization?.replace("Bearer ", "");
-
-    if (!token) {
-        return res.status(401).send("Token não enviado!");
-    }
+    const user = res.locals.user;
 
     try {
-        const session = await collectionSessions.findOne({ token });
-        
-        const user = await collectionUsers.findOne({ _id: session?.userId });
-        if (!user) {
-            return res.sendStatus(401);
-        }
-        
         const transacoesUser = await collectionTransacoes.find({ userId: user._id }).toArray();
 
         return res.status(201).send(transacoesUser)
